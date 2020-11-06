@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ContextoPagamento.Compartilhado\ContextoPagamento.Compartilhado.csproj" />
+    <ProjectReference Include="..\ContextoPagamento.Dominio\ContextoPagamento.Dominio.csproj" />
+  </ItemGroup>
+
+</Project>
