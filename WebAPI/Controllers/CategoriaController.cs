@@ -1,47 +1,60 @@
 ﻿using ContextoPagamento.Dominio.Modelos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
-using System;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
+using WebAPI.Dados;
 
 namespace WebAPI.Controllers
 {
     // Endpoint == URL
     // http://localhost:5000
     // https://localhost:5001
-    [Route("categorias")]
+    [Route("v1/categorias")]
     public class CategoriaController : ControllerBase
     {
         [HttpGet]
         [Route("")]
-        public async Task<ActionResult<IList<Categoria>>> ObterCategorias()
+        public async Task<ActionResult<IList<Categoria>>> ObterCategorias([FromServices] DataContext context)
         {
-            return new List<Categoria>();
+            return await context.Categorias.AsNoTracking().ToListAsync();
         }
 
         [HttpGet]
         [Route("{id:int}")]
-        public async Task<ActionResult<Categoria>> ObterCategoriasPorId(int id)
+        public async Task<ActionResult<Categoria>> ObterCategoriasPorId(int id, [FromServices] DataContext context)
         {
-            return new Categoria();
+            return await context.Categorias.FindAsync(id);
         }
 
         [HttpPost]
         [Route("")]
-        public async Task<ActionResult<Categoria>> IncluirCategoria([FromBody] Categoria categoria)
+        public async Task<ActionResult<Categoria>> IncluirCategoria(
+            [FromBody] Categoria categoria,
+            [FromServices] DataContext context)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            try
+            {
 
-            return Ok(categoria);
+                context.Categorias.Add(categoria);
+                await context.SaveChangesAsync();
+
+                return Ok(categoria);
+            }
+            catch
+            {
+                return BadRequest(new { message = "Não foi possível criar a categoria" });
+            }
         }
 
         [HttpPut]
         [Route("{id:int}")]
-        public async Task<ActionResult<Categoria>> AlterarCategoria(int id, [FromBody] Categoria categoria)
+        public async Task<ActionResult<Categoria>> AlterarCategoria(
+            int id,
+            [FromBody] Categoria categoria,
+            [FromServices] DataContext context)
         {
             if (categoria.IdCategoria != id)
                 return NotFound(new { message = "Categoria não encontrada" });
@@ -49,14 +62,37 @@ namespace WebAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return Ok(categoria);
+            try
+            {
+                context.Entry(categoria).State = EntityState.Modified;
+                await context.SaveChangesAsync();
+                return Ok(categoria);
+            }
+            catch
+            {
+                return BadRequest(new { message = "Não foi possível alterar a categoria" });
+            }
         }
 
         [HttpDelete]
         [Route("{id:int}")]
-        public async Task<ActionResult<Categoria>> ExcluirCategoria(int id)
+        public async Task<ActionResult<Categoria>> ExcluirCategoria(
+            int id,
+            [FromServices] DataContext context)
         {
-            return Ok();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                context.Categorias.Remove(await context.Categorias.FindAsync(id));
+                await context.SaveChangesAsync();
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest(new { message = "Não foi possível excluir a categoria" });
+            }
         }
     }
 }
